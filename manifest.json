@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Download Name Restorer",
+  "version": "1.0.0",
+  "description": "Rename hashed download filenames back to the original name shown when you clicked download.",
+  "permissions": [
+    "downloads",
+    "webRequest",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}
