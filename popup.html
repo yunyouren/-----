@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Download Name Restorer</title>
+    <style>
+      :root {
+        --bg: #f8fbfd;
+        --text: #13283c;
+        --line: #d0dae4;
+        --brand: #006a8e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 14px;
+        background: var(--bg);
+        color: var(--text);
+        font: 13px/1.4 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .hint {
+        margin: 8px 0;
+        color: #435d75;
+      }
+      .site {
+        margin: 0 0 10px;
+        color: #274864;
+      }
+      .btn {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-top: 8px;
+        background: #fff;
+        color: var(--brand);
+        cursor: pointer;
+      }
+      .status {
+        min-height: 18px;
+        margin-top: 8px;
+        color: #0a7a43;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Download Name Restorer</h1>
+    <label class="row">
+      <input id="enabled" type="checkbox" />
+      <span>启用插件</span>
+    </label>
+    <p class="hint" id="mode"></p>
+    <p class="site" id="site"></p>
+    <button class="btn" id="addCurrentSite" type="button">将当前网站加入白名单</button>
+    <button class="btn" id="openOptions" type="button">打开设置</button>
+    <p class="status" id="status"></p>
+    <script src="popup.js"></script>
+  </body>
+</html>

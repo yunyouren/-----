@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Download Name Restorer 设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Download Name Restorer</h1>
+      <p class="hint">控制全局开关，并选择站点生效范围模式。</p>
+
+      <label class="row">
+        <input id="enabled" type="checkbox" />
+        <span>启用插件</span>
+      </label>
+
+      <fieldset class="mode">
+        <legend>模式</legend>
+        <label class="row"><input type="radio" name="mode" value="all" /> 全部网站生效</label>
+        <label class="row"><input type="radio" name="mode" value="whitelist" /> 仅白名单生效</label>
+        <label class="row"><input type="radio" name="mode" value="blacklist" /> 黑名单排除</label>
+      </fieldset>
+
+      <label for="whitelist" class="label">白名单域名（每行一个，支持 `*.example.com`）</label>
+      <textarea id="whitelist" placeholder="pg.njupt.edu.cn&#10;*.edu.cn" spellcheck="false"></textarea>
+
+      <label for="blacklist" class="label">黑名单域名（每行一个，支持 `*.example.com`）</label>
+      <textarea id="blacklist" placeholder="example.com&#10;*.tracker.net" spellcheck="false"></textarea>
+
+      <div class="actions">
+        <button id="save" type="button">保存设置</button>
+        <span id="status" aria-live="polite"></span>
+      </div>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -2,17 +2,68 @@
 
 const MAX_CLICK_RECORDS = 200;
 const MAX_CANDIDATES_PER_CLICK = 12;
+const SETTINGS_KEY = "settings";
+const MODE_ALL = "all";
+const MODE_WHITELIST = "whitelist";
+const MODE_BLACKLIST = "blacklist";
+const DEFAULT_SETTINGS = {
+  enabled: true,
+  mode: MODE_ALL,
+  whitelist: [],
+  blacklist: []
+};
+
 const clickRecords = [];
 const headerFilenameByUrl = new Map();
+const seededRecordsByUrl = new Map();
+let cachedSettings = { ...DEFAULT_SETTINGS };
+
+void bootstrapSettings();
+
+chrome.runtime.onInstalled.addListener(() => {
+  void ensureSettings();
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "sync" || !changes[SETTINGS_KEY]) {
+    return;
+  }
+  cachedSettings = mergeSettings(changes[SETTINGS_KEY].newValue);
+});
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "seed-candidates") {
+    const items = Array.isArray(message.items) ? message.items : [];
+    for (const item of items) {
+      const url = normalizeUrl(item?.url);
+      const candidates = sanitizeCandidates(item?.candidates || []);
+      if (!url || candidates.length === 0) {
+        continue;
+      }
+      seededRecordsByUrl.set(url, {
+        url,
+        pageUrl: normalizeUrl(message.pageUrl),
+        pageTitle: normalizeText(message.pageTitle),
+        candidates,
+        timestamp: Date.now()
+      });
+    }
+    pruneSeededRecords();
+    sendResponse({ ok: true, count: items.length });
+    return false;
+  }
+
   if (message?.type !== "download-clicked") {
+    return false;
+  }
+
+  if (!isUrlAllowedBySettings(message.pageUrl)) {
+    sendResponse({ ok: false, reason: "site-not-allowed" });
     return false;
   }
 
   const normalizedUrl = normalizeUrl(message.url);
   const candidates = sanitizeCandidates(message.candidates || []);
-
   if (!normalizedUrl || candidates.length === 0) {
     sendResponse({ ok: false });
     return false;
@@ -36,13 +87,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 chrome.webRequest.onHeadersReceived.addListener(
   (details) => {
-    const filename = getFilenameFromHeaders(details.responseHeaders || []);
-    const url = normalizeUrl(details.url);
-
-    if (!filename || !url) {
+    if (!isUrlAllowedBySettings(details.initiator || details.url)) {
       return;
     }
 
+    const filename = getFilenameFromHeaders(details.responseHeaders || []);
+    const url = normalizeUrl(details.url);
+    if (!filename || !url) {
+      return;
+    }
     headerFilenameByUrl.set(url, filename);
   },
   { urls: ["<all_urls>"] },
@@ -50,8 +103,13 @@ chrome.webRequest.onHeadersReceived.addListener(
 );
 
 chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
-  const currentName = getLeafName(downloadItem.filename);
+  const gateUrl = downloadItem.referrer || downloadItem.finalUrl || downloadItem.url;
+  if (!isUrlAllowedBySettings(gateUrl)) {
+    suggest();
+    return;
+  }
 
+  const currentName = getLeafName(downloadItem.filename);
   if (!isProbablyHashedFilename(currentName)) {
     suggest();
     return;
@@ -67,15 +125,24 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
 });
 
 function pickCandidateFilename(downloadItem) {
-  const urlCandidates = [
-    normalizeUrl(downloadItem.finalUrl),
-    normalizeUrl(downloadItem.url)
-  ].filter(Boolean);
+  const urlCandidates = [normalizeUrl(downloadItem.finalUrl), normalizeUrl(downloadItem.url)].filter(Boolean);
 
   for (const url of urlCandidates) {
     const headerFilename = headerFilenameByUrl.get(url);
     if (headerFilename) {
       return headerFilename;
+    }
+  }
+
+  for (const url of urlCandidates) {
+    const seeded = seededRecordsByUrl.get(url);
+    if (!seeded) {
+      continue;
+    }
+    const extension = inferExtension(downloadItem);
+    const selected = chooseBestCandidate(seeded.candidates, extension);
+    if (selected) {
+      return selected;
     }
   }
 
@@ -93,7 +160,6 @@ function pickCandidateFilename(downloadItem) {
   if (matchedClick.pageTitle && extension) {
     return sanitizeFilename(`${matchedClick.pageTitle}${extension}`);
   }
-
   return null;
 }
 
@@ -105,7 +171,6 @@ function findBestClickRecord(downloadItem) {
 
   for (let index = clickRecords.length - 1; index >= 0; index -= 1) {
     const record = clickRecords[index];
-
     if (now - record.timestamp > 5 * 60 * 1000) {
       continue;
     }
@@ -136,7 +201,6 @@ function chooseBestCandidate(candidates, extension) {
     if (!scored) {
       continue;
     }
-
     if (scored.score > bestScore) {
       bestScore = scored.score;
       bestFilename = scored.filename;
@@ -166,11 +230,9 @@ function normalizeCandidateToFilename(candidate, extension) {
   if (!filename) {
     return null;
   }
-
   if (extension && !filename.toLowerCase().endsWith(extension.toLowerCase())) {
     return null;
   }
-
   if (looksGenericLabel(filename)) {
     return null;
   }
@@ -205,10 +267,7 @@ function sanitizeCandidates(rawCandidates) {
 }
 
 function getFilenameFromHeaders(headers) {
-  const contentDisposition = headers.find((header) => {
-    return header?.name?.toLowerCase() === "content-disposition";
-  })?.value;
-
+  const contentDisposition = headers.find((header) => header?.name?.toLowerCase() === "content-disposition")?.value;
   if (!contentDisposition) {
     return null;
   }
@@ -240,7 +299,6 @@ function inferExtension(downloadItem) {
       return match[1];
     }
   }
-
   return "";
 }
 
@@ -248,7 +306,6 @@ function getLeafNameFromUrl(value) {
   if (!value) {
     return "";
   }
-
   try {
     const pathname = new URL(value).pathname;
     return pathname.split("/").filter(Boolean).pop() || "";
@@ -261,7 +318,6 @@ function normalizeUrl(value) {
   if (!value) {
     return null;
   }
-
   try {
     const url = new URL(value);
     url.hash = "";
@@ -275,7 +331,6 @@ function samePath(left, right) {
   if (!left || !right) {
     return false;
   }
-
   try {
     const leftUrl = new URL(left);
     const rightUrl = new URL(right);
@@ -289,13 +344,11 @@ function sanitizeFilename(filename) {
   if (!filename) {
     return null;
   }
-
   const cleaned = filename
     .replace(/[\\/:*?"<>|]/g, "_")
     .replace(/\s+/g, " ")
     .trim()
     .replace(/\.+$/, "");
-
   return cleaned || null;
 }
 
@@ -303,12 +356,7 @@ function normalizeText(value) {
   if (!value || typeof value !== "string") {
     return null;
   }
-
-  const cleaned = value
-    .replace(/\s+/g, " ")
-    .replace(/[：:]\s*$/, "")
-    .trim();
-
+  const cleaned = value.replace(/\s+/g, " ").replace(/[：:]\s*$/, "").trim();
   return cleaned || null;
 }
 
@@ -320,7 +368,6 @@ function getLeafName(path) {
   if (!path) {
     return "";
   }
-
   const parts = path.split(/[\\/]/);
   return parts[parts.length - 1];
 }
@@ -336,18 +383,109 @@ function looksGenericLabel(value) {
 function isProbablyHashedFilename(filename) {
   const dotIndex = filename.lastIndexOf(".");
   const stem = dotIndex > 0 ? filename.slice(0, dotIndex) : filename;
-
-  if (stem.length < 16) {
-    return false;
-  }
-
-  if (/\s/.test(stem)) {
+  if (stem.length < 16 || /\s/.test(stem)) {
     return false;
   }
 
   const hexLike = /^[a-f0-9]{16,}$/i.test(stem);
   const uuidLike = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(stem);
   const slugLike = /^[a-z0-9_-]{20,}$/i.test(stem) && !/[aeiou\u4e00-\u9fff]{4,}/i.test(stem);
-
   return hexLike || uuidLike || slugLike;
+}
+
+async function bootstrapSettings() {
+  await ensureSettings();
+}
+
+async function ensureSettings() {
+  const data = await chrome.storage.sync.get(SETTINGS_KEY);
+  const merged = mergeSettings(data[SETTINGS_KEY]);
+  cachedSettings = merged;
+  if (!data[SETTINGS_KEY] || JSON.stringify(merged) !== JSON.stringify(data[SETTINGS_KEY])) {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: merged });
+  }
+}
+
+function mergeSettings(value) {
+  const base = { ...DEFAULT_SETTINGS };
+  if (!value || typeof value !== "object") {
+    return base;
+  }
+
+  base.enabled = Boolean(value.enabled);
+  base.mode = normalizeMode(value.mode, value.whitelistMode);
+  base.whitelist = Array.isArray(value.whitelist) ? value.whitelist.map(normalizeDomainRule).filter(Boolean) : [];
+  base.blacklist = Array.isArray(value.blacklist) ? value.blacklist.map(normalizeDomainRule).filter(Boolean) : [];
+  return base;
+}
+
+function normalizeMode(mode, legacyWhitelistMode) {
+  if (mode === MODE_ALL || mode === MODE_WHITELIST || mode === MODE_BLACKLIST) {
+    return mode;
+  }
+  return legacyWhitelistMode ? MODE_WHITELIST : MODE_ALL;
+}
+
+function isUrlAllowedBySettings(url) {
+  if (!cachedSettings.enabled) {
+    return false;
+  }
+
+  const host = extractHost(url);
+  if (!host) {
+    return cachedSettings.mode === MODE_ALL;
+  }
+
+  if (cachedSettings.mode === MODE_WHITELIST) {
+    return cachedSettings.whitelist.some((rule) => domainMatches(host, rule));
+  }
+
+  if (cachedSettings.mode === MODE_BLACKLIST) {
+    return !cachedSettings.blacklist.some((rule) => domainMatches(host, rule));
+  }
+
+  return true;
+}
+
+function extractHost(url) {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function domainMatches(host, rule) {
+  if (!host || !rule) {
+    return false;
+  }
+  if (rule.startsWith("*.")) {
+    const base = rule.slice(2);
+    return host === base || host.endsWith(`.${base}`);
+  }
+  return host === rule || host.endsWith(`.${rule}`);
+}
+
+function normalizeDomainRule(value) {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  let rule = value.trim().toLowerCase();
+  if (!rule) {
+    return "";
+  }
+
+  rule = rule.replace(/^https?:\/\//, "");
+  rule = rule.replace(/\/.*$/, "");
+  return rule;
+}
+
+function pruneSeededRecords() {
+  const now = Date.now();
+  for (const [url, record] of seededRecordsByUrl.entries()) {
+    if (now - record.timestamp > 15 * 60 * 1000) {
+      seededRecordsByUrl.delete(url);
+    }
+  }
 }
