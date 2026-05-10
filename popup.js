@@ -20,9 +20,9 @@ const openOptionsBtn = document.getElementById("openOptions");
 
 let currentHost = "";
 
-void init();
-
 applyI18n();
+
+void init();
 
 enabledEl.addEventListener("change", () => {
   void updateEnabled(enabledEl.checked);
