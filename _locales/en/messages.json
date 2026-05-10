@@ -1,0 +1,94 @@
+{
+  "ext_name": {
+    "message": "Download Name Restorer",
+    "description": "Extension name"
+  },
+  "ext_description": {
+    "message": "Restore hashed or UUID download filenames to the original filename seen when clicking download.",
+    "description": "Extension description"
+  },
+  "enable_plugin": {
+    "message": "Enable extension",
+    "description": "Enable plugin checkbox label"
+  },
+  "current_site": {
+    "message": "Current site: {host}",
+    "description": "Current site display, {host} will be replaced"
+  },
+  "current_site_unavailable": {
+    "message": "Current site: unavailable",
+    "description": "Current site unavailable"
+  },
+  "add_to_whitelist": {
+    "message": "Add current site to whitelist",
+    "description": "Add current site to whitelist button"
+  },
+  "open_settings": {
+    "message": "Open settings",
+    "description": "Open settings button"
+  },
+  "mode_all_sites": {
+    "message": "Mode: All sites enabled",
+    "description": "Mode: all sites"
+  },
+  "mode_whitelist": {
+    "message": "Mode: Whitelist only ({count} rules)",
+    "description": "Mode: whitelist only, {count} will be replaced"
+  },
+  "mode_blacklist": {
+    "message": "Mode: Blacklist excluded ({count} rules)",
+    "description": "Mode: blacklist, {count} will be replaced"
+  },
+  "cannot_identify_site": {
+    "message": "Cannot identify current site",
+    "description": "Cannot identify current site"
+  },
+  "already_in_whitelist": {
+    "message": "Site already in whitelist",
+    "description": "Site already in whitelist"
+  },
+  "added_to_whitelist": {
+    "message": "Added: {host}",
+    "description": "Added to whitelist, {host} will be replaced"
+  },
+  "settings_title": {
+    "message": "Download Name Restorer Settings",
+    "description": "Settings page title"
+  },
+  "settings_hint": {
+    "message": "Control global switch and select site scope mode.",
+    "description": "Settings page hint"
+  },
+  "mode_legend": {
+    "message": "Mode",
+    "description": "Mode fieldset legend"
+  },
+  "mode_all_label": {
+    "message": "All sites enabled",
+    "description": "All sites mode label"
+  },
+  "mode_whitelist_label": {
+    "message": "Whitelist only",
+    "description": "Whitelist only mode label"
+  },
+  "mode_blacklist_label": {
+    "message": "Blacklist excluded",
+    "description": "Blacklist mode label"
+  },
+  "whitelist_label": {
+    "message": "Whitelist domains (one per line, supports `*.example.com`)",
+    "description": "Whitelist textarea label"
+  },
+  "blacklist_label": {
+    "message": "Blacklist domains (one per line, supports `*.example.com`)",
+    "description": "Blacklist textarea label"
+  },
+  "save_settings": {
+    "message": "Save settings",
+    "description": "Save settings button"
+  },
+  "saved": {
+    "message": "Saved",
+    "description": "Saved status"
+  }
+}

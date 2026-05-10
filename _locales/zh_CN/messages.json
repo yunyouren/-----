@@ -1,0 +1,94 @@
+{
+  "ext_name": {
+    "message": "下载文件名还原器",
+    "description": "Extension name"
+  },
+  "ext_description": {
+    "message": "将哈希或 UUID 下载文件名还原为点击下载时看到的原始文件名。",
+    "description": "Extension description"
+  },
+  "enable_plugin": {
+    "message": "启用插件",
+    "description": "Enable plugin checkbox label"
+  },
+  "current_site": {
+    "message": "当前网站：{host}",
+    "description": "Current site display, {host} will be replaced"
+  },
+  "current_site_unavailable": {
+    "message": "当前网站：不可用",
+    "description": "Current site unavailable"
+  },
+  "add_to_whitelist": {
+    "message": "将当前网站加入白名单",
+    "description": "Add current site to whitelist button"
+  },
+  "open_settings": {
+    "message": "打开设置",
+    "description": "Open settings button"
+  },
+  "mode_all_sites": {
+    "message": "模式：全部网站生效",
+    "description": "Mode: all sites"
+  },
+  "mode_whitelist": {
+    "message": "模式：仅白名单生效（{count} 条规则）",
+    "description": "Mode: whitelist only, {count} will be replaced"
+  },
+  "mode_blacklist": {
+    "message": "模式：黑名单排除（{count} 条规则）",
+    "description": "Mode: blacklist, {count} will be replaced"
+  },
+  "cannot_identify_site": {
+    "message": "无法识别当前网站",
+    "description": "Cannot identify current site"
+  },
+  "already_in_whitelist": {
+    "message": "该网站已在白名单中",
+    "description": "Site already in whitelist"
+  },
+  "added_to_whitelist": {
+    "message": "已加入：{host}",
+    "description": "Added to whitelist, {host} will be replaced"
+  },
+  "settings_title": {
+    "message": "Download Name Restorer 设置",
+    "description": "Settings page title"
+  },
+  "settings_hint": {
+    "message": "控制全局开关，并选择站点生效范围模式。",
+    "description": "Settings page hint"
+  },
+  "mode_legend": {
+    "message": "模式",
+    "description": "Mode fieldset legend"
+  },
+  "mode_all_label": {
+    "message": "全部网站生效",
+    "description": "All sites mode label"
+  },
+  "mode_whitelist_label": {
+    "message": "仅白名单生效",
+    "description": "Whitelist only mode label"
+  },
+  "mode_blacklist_label": {
+    "message": "黑名单排除",
+    "description": "Blacklist mode label"
+  },
+  "whitelist_label": {
+    "message": "白名单域名（每行一个，支持 `*.example.com`）",
+    "description": "Whitelist textarea label"
+  },
+  "blacklist_label": {
+    "message": "黑名单域名（每行一个，支持 `*.example.com`）",
+    "description": "Blacklist textarea label"
+  },
+  "save_settings": {
+    "message": "保存设置",
+    "description": "Save settings button"
+  },
+  "saved": {
+    "message": "已保存",
+    "description": "Saved status"
+  }
+}

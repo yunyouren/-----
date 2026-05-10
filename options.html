@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title data-i18n="settings_title">Download Name Restorer Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <h1 data-i18n="ext_name">Download Name Restorer</h1>
+      <p class="hint" data-i18n="settings_hint">Control global switch and select site scope mode.</p>
+
+      <label class="row">
+        <input id="enabled" type="checkbox" />
+        <span data-i18n="enable_plugin">Enable extension</span>
+      </label>
+
+      <fieldset class="mode">
+        <legend data-i18n="mode_legend">Mode</legend>
+        <label class="row"><input type="radio" name="mode" value="all" /> <span data-i18n="mode_all_label">All sites enabled</span></label>
+        <label class="row"><input type="radio" name="mode" value="whitelist" /> <span data-i18n="mode_whitelist_label">Whitelist only</span></label>
+        <label class="row"><input type="radio" name="mode" value="blacklist" /> <span data-i18n="mode_blacklist_label">Blacklist excluded</span></label>
+      </fieldset>
+
+      <label for="whitelist" class="label" data-i18n="whitelist_label">Whitelist domains (one per line, supports `*.example.com`)</label>
+      <textarea id="whitelist" placeholder="pg.njupt.edu.cn&#10;*.edu.cn" spellcheck="false"></textarea>
+
+      <label for="blacklist" class="label" data-i18n="blacklist_label">Blacklist domains (one per line, supports `*.example.com`)</label>
+      <textarea id="blacklist" placeholder="example.com&#10;*.tracker.net" spellcheck="false"></textarea>
+
+      <div class="actions">
+        <button id="save" type="button" data-i18n="save_settings">Save settings</button>
+        <span id="status" aria-live="polite"></span>
+      </div>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+</html>
